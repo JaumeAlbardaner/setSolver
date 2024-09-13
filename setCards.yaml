@@ -1,0 +1,7 @@
+path: ./
+train: './Training_Dataset'
+val: './Valid_Dataset'
+ 
+# class names
+names: 
+  0: 'pothole'
