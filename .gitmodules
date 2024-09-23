@@ -1,0 +1,6 @@
+[submodule "aarohiSingla"]
+	path = aarohiSingla
+	url = git@github.com:AarohiSingla/Object-Detection-Android-App.git
+[submodule "ultralytics"]
+	path = ultralytics
+	url = git@github.com:ultralytics/ultralytics.git
