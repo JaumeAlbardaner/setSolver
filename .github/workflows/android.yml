@@ -1,39 +1,94 @@
-name: Android CI
+name: Generate APK
+
+env:
+  # The name of the main module repository
+  main_project_module: app
+
+  # The name of the Play Store
+  playstore_name: SetSolver
 
 on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    branches:
+      - 'master'
+
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        steps:
-        - name: Checkout repository
-          uses: actions/checkout@v4
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
 
-        - name: Set up JDK 17
-          uses: actions/setup-java@v4
-          with:
-                distribution: 'adopt'
-                java-version: '17'
+    steps:
+      - uses: actions/checkout@v4
 
-        - name: Cache Gradle packages
-          uses: actions/cache@v4
-          with:
-                path: ~/.gradle/caches
-                key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-                restore-keys: |
-                    ${{ runner.os }}-gradle-
-        
+      # Set Current Date As Env Variable
+      - name: Set current date as env variable
+        run: echo "date_today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
-        - name: Build with Gradle
-          working-directory: ./Android_SetSolver
-          run: ./gradlew assembleRelease
+      # Set Repository Name As Env Variable
+      - name: Set repository name as env variable
+        run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
 
-        - name: Upload APK
-          uses: actions/upload-artifact@v4
-          with:
-                name: release-apk
-                path: Android_SetSolver/app/build/outputs/apk/debug/app-debug.apk
+      - name: Set Up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu' # See 'Supported distributions' for available options
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Change wrapper permissions
+        working-directory: ./Android_SetSolver
+        run: chmod +x ./gradlew
+
+      # Run Tests Build
+      - name: Run gradle tests
+        working-directory: ./Android_SetSolver
+        run: ./gradlew test
+
+      # Run Build Project
+      - name: Build gradle project
+        working-directory: ./Android_SetSolver
+        run: ./gradlew build
+
+      # Create APK Release
+      - name: Assemble apk
+        working-directory: ./Android_SetSolver
+        run: ./gradlew assemble
+
+      # Noted For Output [main_project_module]/build/outputs/apk/release/
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: apk
+          path: Android_SetSolver/app/build/outputs/apk/debug/app-debug.apk
+
+  release:
+    name: Release APK
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download APK from build
+        uses: actions/download-artifact@v4
+        with:
+          name: apk
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: 1.1 #${{ github.run_number }}
+          release_name: ${{ github.event.repository.name }} v1.1 #${{ github.run_number }}
+      - name: Upload Release APK
+        id: upload_release_asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: apk/app-debug.apk
+          asset_name: ${{ github.event.repository.name }}.apk
+          asset_content_type: application/zip
