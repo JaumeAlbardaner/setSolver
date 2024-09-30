@@ -60,7 +60,7 @@ jobs:
 
       # Noted For Output [main_project_module]/build/outputs/apk/release/
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: apk
           path: Android_SetSolver/app/build/outputs/apk/debug/app-debug.apk
