@@ -9,7 +9,6 @@ on:
 jobs:
     build:
         runs-on: ubuntu-latest
-
         steps:
         - name: Checkout repository
           uses: actions/checkout@v4
@@ -27,9 +26,11 @@ jobs:
                 key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
                 restore-keys: |
                     ${{ runner.os }}-gradle-
+        
 
         - name: Build with Gradle
-          run: ./Android_SetSolver/gradlew assembleRelease
+          working-directory: ./Android_SetSolver
+          run: ./gradlew assembleRelease
 
         - name: Upload APK
           uses: actions/upload-artifact@v4
