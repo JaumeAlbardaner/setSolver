@@ -1,6 +1,13 @@
 
 # Set SAT-Solver
 
+To download the apk, press the following button:
+<p align="center">
+ <a href="https://github.com/JaumeAlbardaner/setSolver/releases/download/1/setSolver.apk">
+  <img src="https://img.shields.io/badge/Download-APK-blue?style=for-the-badge" alt="Download APK">
+</a> 
+</p>
+
 
 ## What is Set?
 
